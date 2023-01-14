@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
+const { ERROR_CODE_NOT_FOUND } = require('./utils/constants');
 
 const app = express();
 
@@ -18,6 +19,10 @@ app.use((request, response, next) => {
 });
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
+app.use('*', (request, response, next) => {
+  response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Неверный путь' });
+  next();
+});
 
 async function connect() {
   await mongoose.connect(MONGO_URL, {}); // подключение к серверу mongo

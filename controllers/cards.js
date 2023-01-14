@@ -1,8 +1,9 @@
 const Card = require('../models/card');
-
-const ERROR_CODE_VALIDATION = 400;
-const ERROR_CODE_NOT_FOUND = 404;
-const ERROR_CODE_COMMON = 500;
+const {
+  ERROR_CODE_VALIDATION,
+  ERROR_CODE_NOT_FOUND,
+  ERROR_CODE_COMMON,
+} = require('../utils/constants');
 
 // Возвращение всех карточек
 module.exports.getCards = (request, response) => {
@@ -41,7 +42,11 @@ module.exports.deleteCardById = (request, response) => {
       response.send({ message: 'Пост удалён' });
     })
     .catch((error) => {
-      if (error.name === 'CastError' || error.message === 'Not found') {
+      if (error.name === 'CastError') {
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные: ${error.message}` });
+        return;
+      }
+      if (error.message === 'Not found') {
         response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
         return;
       }

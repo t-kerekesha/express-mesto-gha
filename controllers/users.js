@@ -1,8 +1,9 @@
 const User = require('../models/user');
-
-const ERROR_CODE_VALIDATION = 400;
-const ERROR_CODE_NOT_FOUND = 404;
-const ERROR_CODE_COMMON = 500;
+const {
+  ERROR_CODE_VALIDATION,
+  ERROR_CODE_NOT_FOUND,
+  ERROR_CODE_COMMON,
+} = require('../utils/constants');
 
 // Возвращение всех пользователей
 module.exports.getUsers = (request, response) => {
