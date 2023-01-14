@@ -24,11 +24,11 @@ module.exports.getUserById = (request, response) => {
       response.send({ data: user });
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
         response.status(VALIDATION_ERROR_CODE).send({ message: `Некорректный id: ${error.message}` });
         return;
       }
-      if (error.name === 'CastError' || error.message === 'Not found') {
+      if (error.message === 'Not found') {
         response.status(CAST_ERROR_CODE).send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
