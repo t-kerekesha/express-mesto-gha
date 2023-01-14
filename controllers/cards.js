@@ -1,13 +1,17 @@
 const Card = require('../models/card');
 
+const VALIDATION_ERROR_CODE = 400;
+const CAST_ERROR_CODE = 404;
+const ERROR_CODE = 500;
+
 // Возвращение всех карточек
 module.exports.getCards = (request, response) => {
   Card.find({})
     .then((cards) => response.send({ data: cards }))
     .catch((error) => {
       // Обработка ошибок по умолчанию
-      response.status(500).send({
-        message: `Произошла неизвестная ошибка ${error.name}: ${error.message}`,
+      response.status(ERROR_CODE).send({
+        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
 };
@@ -19,11 +23,11 @@ module.exports.createCard = (request, response) => {
     .then((card) => response.send({ data: card }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(400).send({ message: `Переданы некорректные данные при создании карточки: ${error.message}` });
+        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные при создании карточки: ${error.message}` });
         return;
       }
-      response.status(500).send({
-        message: `Произошла неизвестная ошибка ${error.name}: ${error.message}`,
+      response.status(ERROR_CODE).send({
+        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
 };
@@ -38,11 +42,11 @@ module.exports.deleteCardById = (request, response) => {
     })
     .catch((error) => {
       if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+        response.status(CAST_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
         return;
       }
-      response.status(500).send({
-        message: `Произошла неизвестная ошибка ${error.name}: ${error.message}`,
+      response.status(ERROR_CODE).send({
+        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
 };
@@ -60,15 +64,15 @@ module.exports.likeCard = (request, response) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(400).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
+        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }
       if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(404).send({ message: 'Передан несуществующий _id карточки' });
+        response.status(CAST_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки' });
         return;
       }
-      response.status(500).send({
-        message: `Произошла неизвестная ошибка ${error.name}: ${error.message}`,
+      response.status(ERROR_CODE).send({
+        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
 };
@@ -86,15 +90,15 @@ module.exports.dislikeCard = (request, response) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(400).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
+        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }
       if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(404).send({ message: 'Передан несуществующий _id карточки' });
+        response.status(CAST_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки' });
         return;
       }
-      response.status(500).send({
-        message: `Произошла неизвестная ошибка ${error.name}: ${error.message}`,
+      response.status(ERROR_CODE).send({
+        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
 };
