@@ -1,8 +1,8 @@
 const User = require('../models/user');
 
-const VALIDATION_ERROR_CODE = 400;
-const CAST_ERROR_CODE = 404;
-const ERROR_CODE = 500;
+const ERROR_CODE_VALIDATION = 400;
+const ERROR_CODE_NOT_FOUND = 404;
+const ERROR_CODE_COMMON = 500;
 
 // Возвращение всех пользователей
 module.exports.getUsers = (request, response) => {
@@ -10,7 +10,7 @@ module.exports.getUsers = (request, response) => {
     .then((users) => response.status(200).send({ data: users }))
     .catch((error) => {
       // Обработка ошибок по умолчанию
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -25,14 +25,14 @@ module.exports.getUserById = (request, response) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Некорректный id: ${error.message}` });
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Некорректный id: ${error.message}` });
         return;
       }
       if (error.message === 'Not found') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Пользователь по указанному _id не найден' });
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -46,10 +46,10 @@ module.exports.createUser = (request, response) => {
     .then((user) => response.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные при создании пользователя: ${error.message}` });
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при создании пользователя: ${error.message}` });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -70,14 +70,14 @@ module.exports.updateUser = (request, response) => {
     .then((user) => response.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные при обновлении профиля: ${error.message}` });
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при обновлении профиля: ${error.message}` });
         return;
       }
       if (error.name === 'CastError') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -98,14 +98,14 @@ module.exports.updateAvatar = (request, response) => {
     .then((user) => response.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные при обновлении аватара: ${error.message}` });
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при обновлении аватара: ${error.message}` });
         return;
       }
       if (error.name === 'CastError') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });

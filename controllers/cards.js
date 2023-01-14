@@ -1,8 +1,8 @@
 const Card = require('../models/card');
 
-const VALIDATION_ERROR_CODE = 400;
-const CAST_ERROR_CODE = 404;
-const ERROR_CODE = 500;
+const ERROR_CODE_VALIDATION = 400;
+const ERROR_CODE_NOT_FOUND = 404;
+const ERROR_CODE_COMMON = 500;
 
 // Возвращение всех карточек
 module.exports.getCards = (request, response) => {
@@ -10,7 +10,7 @@ module.exports.getCards = (request, response) => {
     .then((cards) => response.send({ data: cards }))
     .catch((error) => {
       // Обработка ошибок по умолчанию
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -23,10 +23,10 @@ module.exports.createCard = (request, response) => {
     .then((card) => response.send({ data: card }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные при создании карточки: ${error.message}` });
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при создании карточки: ${error.message}` });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -42,10 +42,10 @@ module.exports.deleteCardById = (request, response) => {
     })
     .catch((error) => {
       if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -63,15 +63,15 @@ module.exports.likeCard = (request, response) => {
       response.send({ data: card });
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }
-      if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки' });
+      if (error.message === 'Not found') {
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
@@ -89,15 +89,15 @@ module.exports.dislikeCard = (request, response) => {
       response.send({ data: card });
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
-        response.status(VALIDATION_ERROR_CODE).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }
-      if (error.name === 'CastError' || error.message === 'Not found') {
-        response.status(CAST_ERROR_CODE).send({ message: 'Передан несуществующий _id карточки' });
+      if (error.message === 'Not found') {
+        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
         return;
       }
-      response.status(ERROR_CODE).send({
+      response.status(ERROR_CODE_COMMON).send({
         message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
       });
     });
