@@ -11,6 +11,7 @@ const {
   MONGO_URL = 'mongodb://localhost:27017/mestodb',
 } = process.env;
 
+// app.use(express.json());
 app.use((request, response, next) => {
   request.user = {
     _id: '63bf00ae8b0bfddc3d95f78e',
@@ -19,13 +20,12 @@ app.use((request, response, next) => {
 });
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
-app.use('*', (request, response, next) => {
+app.use('*', (request, response) => {
   response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Неверный путь' });
-  next();
 });
 
 async function connect() {
-  await mongoose.connect(MONGO_URL, {}); // подключение к серверу mongo
+  await mongoose.connect(MONGO_URL); // подключение к серверу mongo
   console.log(`Server connect db ${MONGO_URL}`);
 
   await app.listen(PORT);

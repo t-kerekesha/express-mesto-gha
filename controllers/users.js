@@ -20,12 +20,10 @@ module.exports.getUsers = (request, response) => {
 // Возвращение пользователя по _id
 module.exports.getUserById = (request, response) => {
   User.findById(request.params.userId)
-    .then((user) => {
-      if (!user) throw new Error('Not found');
-      response.send({ data: user });
-    })
+    .orFail(new Error('Not found'))
+    .then((user) => response.send({ data: user }))
     .catch((error) => {
-      if (error.name === 'ValidationError' || error.name === 'CastError') {
+      if (error.name === 'CastError') {
         response.status(ERROR_CODE_VALIDATION).send({ message: `Некорректный id: ${error.message}` });
         return;
       }
@@ -65,16 +63,22 @@ module.exports.updateUser = (request, response) => {
     {
       new: true, // передать обновлённый объект на вход обработчику then
       runValidators: true, // валидировать новые данные перед записью в базу
-      upsert: true, // если документ не найден, создать его
     },
   )
-    .then((user) => response.send({ data: user }))
+    .orFail(new Error('Not found'))
+    .then((user) => {
+      response.send({ data: user });
+    })
     .catch((error) => {
       if (error.name === 'ValidationError') {
         response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при обновлении профиля: ${error.message}` });
         return;
       }
       if (error.name === 'CastError') {
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Некорректный id: ${error.message}` });
+        return;
+      }
+      if (error.message === 'Not found') {
         response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
         return;
       }
@@ -93,9 +97,9 @@ module.exports.updateAvatar = (request, response) => {
     {
       new: true,
       runValidators: true,
-      upsert: true,
     },
   )
+    .orFail(new Error('Not found'))
     .then((user) => response.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
@@ -103,6 +107,10 @@ module.exports.updateAvatar = (request, response) => {
         return;
       }
       if (error.name === 'CastError') {
+        response.status(ERROR_CODE_VALIDATION).send({ message: `Некорректный id: ${error.message}` });
+        return;
+      }
+      if (error.message === 'Not found') {
         response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' });
         return;
       }

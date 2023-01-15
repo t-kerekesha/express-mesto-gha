@@ -8,6 +8,7 @@ const {
 // Возвращение всех карточек
 module.exports.getCards = (request, response) => {
   Card.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => response.send({ data: cards }))
     .catch((error) => {
       // Обработка ошибок по умолчанию
@@ -63,12 +64,13 @@ module.exports.likeCard = (request, response) => {
     { $addToSet: { likes: request.user._id } }, // добавить _id в массив лайков, если его там нет
     { new: true },
   )
+    .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) throw new Error('Not found');
       response.send({ data: card });
     })
     .catch((error) => {
-      if (error.name === 'ValidationError' || error.name === 'CastError') {
+      if (error.name === 'CastError') {
         response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }
@@ -89,12 +91,13 @@ module.exports.dislikeCard = (request, response) => {
     { $pull: { likes: request.user._id } }, // убрать _id из массива лайков
     { new: true },
   )
+    .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) throw new Error('Not found');
       response.send({ data: card });
     })
     .catch((error) => {
-      if (error.name === 'ValidationError' || error.name === 'CastError') {
+      if (error.name === 'CastError') {
         response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
         return;
       }

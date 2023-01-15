@@ -12,7 +12,7 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (value) => validator.isURL(value),
+      validator: validator.isURL,
     },
   },
   owner: { // ссылка на модель автора карточки
