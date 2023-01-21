@@ -83,7 +83,7 @@ const validateСardId = celebrate({
 const validateCookies = celebrate({
   cookies: Joi.object().keys({
     jwt: Joi.string().required().messages({
-      'any.required': 'В запросе отсутствует токен, необходимо авторизаваться',
+      'any.required': 'В запросе отсутствует токен, необходимо авторизоваться',
     }),
   }).unknown(true),
 });

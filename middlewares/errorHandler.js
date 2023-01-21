@@ -20,4 +20,5 @@ module.exports.errorHandler = (error, request, response, next) => {
         : message,
     });
   }
+  next();
 };
