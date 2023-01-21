@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-// const { errors } = require('celebrate');
+const { errors } = require('celebrate');
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
@@ -36,7 +36,7 @@ app.use('/cards', auth, validateCookies, cardsRoutes);
 app.use('*', (request, response, next) => next(new NotFoundError('Неверный путь')));
 
 // Обработка ошибок
-// app.use(errors());
+app.use(errors());
 app.use(errorHandler);
 
 async function connect() {
