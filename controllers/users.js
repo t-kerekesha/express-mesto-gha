@@ -24,7 +24,7 @@ module.exports.createUser = (request, response, next) => {
       email,
       password: hash,
     }))
-    .then((user) => response.status(STATUS_CODE_CREATED).send({ data: user }))
+    .then((user) => response.status(STATUS_CODE_CREATED).send({ data: user.email }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
         next(new BadRequestError(`Переданы некорректные данные при создании пользователя: ${error.message}`));
