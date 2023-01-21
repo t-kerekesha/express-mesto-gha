@@ -9,7 +9,11 @@ const cardsRoutes = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
 const { errorHandler } = require('./middlewares/errorHandler');
-const { validateEmailPassword, validateCookies } = require('./middlewares/validation');
+const {
+  validateEmailPassword,
+  validateUserData,
+  validateCookies,
+} = require('./middlewares/validation');
 
 const NotFoundError = require('./errors/NotFoundError');
 
@@ -25,7 +29,7 @@ app.use(cors());
 // app.use(express.json());
 
 app.post('/signin', express.json(), validateEmailPassword, login);
-app.post('/signup', express.json(), validateEmailPassword, createUser);
+app.post('/signup', express.json(), validateUserData, createUser);
 app.use('/users', auth, validateCookies, usersRoutes);
 app.use('/cards', auth, validateCookies, cardsRoutes);
 
