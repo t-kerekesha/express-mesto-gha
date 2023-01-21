@@ -1,112 +1,86 @@
 const Card = require('../models/card');
+const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
+const NotFoundError = require('../errors/NotFoundError');
 const {
-  ERROR_CODE_VALIDATION,
-  ERROR_CODE_NOT_FOUND,
-  ERROR_CODE_COMMON,
+  STATUS_CODE_OK,
+  STATUS_CODE_CREATED,
 } = require('../utils/constants');
 
 // Возвращение всех карточек
-module.exports.getCards = (request, response) => {
+module.exports.getCards = (request, response, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => response.send({ data: cards }))
-    .catch((error) => {
-      // Обработка ошибок по умолчанию
-      response.status(ERROR_CODE_COMMON).send({
-        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
-      });
-    });
+    .then((cards) => response.status(STATUS_CODE_OK).send({ data: cards }))
+    .catch(next);
 };
 
 // Создание карточки
-module.exports.createCard = (request, response) => {
-  const { name, link } = request.body;
-  Card.create({ name, link, owner: request.user._id })
-    .then((card) => response.send({ data: card }))
+module.exports.createCard = (request, response, next) => {
+  // const { name, link } = request.body;
+  Card.create({
+    name: request.body.name,
+    link: request.body.link,
+    owner: request.user._id,
+  })
+    .then((card) => Card.populate(card, { path: 'owner' }))
+    .then((card) => response.status(STATUS_CODE_CREATED).send({ data: card }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные при создании карточки: ${error.message}` });
-        return;
+        next(new BadRequestError(`Переданы некорректные данные при создании карточки: ${error.message}`));
+      } else {
+        next(error);
       }
-      response.status(ERROR_CODE_COMMON).send({
-        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
-      });
     });
 };
 
 // Удаление карточки по идентификатору
-module.exports.deleteCardById = (request, response) => {
-  Card.findByIdAndRemove(request.params.cardId)
+module.exports.deleteCardById = (request, response, next) => {
+  Card.findById(request.params.cardId)
+    .orFail(new NotFoundError('Карточка с указанным id не найдена'))
     .then((card) => {
-      if (!card) throw new Error('Not found');
-      // if (request.user._id !== card.owner) throw new Error('Not owner');
-      response.send({ message: 'Пост удалён' });
+      if (request.user._id !== card.owner._id.toString()) {
+        throw new ForbiddenError('Удалять карточки других пользователей нельзя');
+      }
+
+      Card.findByIdAndRemove(request.params.cardId)
+        .then(() => response.status(STATUS_CODE_OK).send({ message: 'Пост удалён' }))
+        .catch(next);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные: ${error.message}` });
-        return;
+        next(new BadRequestError(`Переданы некорректные данные: ${error.message}`));
+      } else {
+        next(error);
       }
-      if (error.message === 'Not found') {
-        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена' });
-        return;
-      }
-      response.status(ERROR_CODE_COMMON).send({
-        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
-      });
     });
 };
 
-// Добавление лайка карточке
-module.exports.likeCard = (request, response) => {
+// Добавление или удаление лайка
+function updateLike(request, response, next, { operator }) {
   Card.findByIdAndUpdate(
     request.params.cardId,
-    { $addToSet: { likes: request.user._id } }, // добавить _id в массив лайков, если его там нет
+    { [operator]: { likes: request.user._id } },
     { new: true },
   )
     .populate(['owner', 'likes'])
-    .then((card) => {
-      if (!card) throw new Error('Not found');
-      response.send({ data: card });
-    })
+    .orFail(new NotFoundError('Передан несуществующий id карточки'))
+    .then((card) => response.status(STATUS_CODE_OK).send({ data: card }))
     .catch((error) => {
       if (error.name === 'CastError') {
-        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
-        return;
+        next(new BadRequestError(`Переданы некорректные данные для постановки или снятии лайка: ${error.message}`));
+      } else {
+        next(error);
       }
-      if (error.message === 'Not found') {
-        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
-        return;
-      }
-      response.status(ERROR_CODE_COMMON).send({
-        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
-      });
     });
+}
+
+// Добавление лайка карточке
+module.exports.likeCard = (request, response, next) => {
+  updateLike(request, response, next, { operator: '$pull' }); // добавить id в массив лайков, если его там нет
 };
 
 // Удаление лайка у карточки
-module.exports.dislikeCard = (request, response) => {
-  Card.findByIdAndUpdate(
-    request.params.cardId,
-    { $pull: { likes: request.user._id } }, // убрать _id из массива лайков
-    { new: true },
-  )
-    .populate(['owner', 'likes'])
-    .then((card) => {
-      if (!card) throw new Error('Not found');
-      response.send({ data: card });
-    })
-    .catch((error) => {
-      if (error.name === 'CastError') {
-        response.status(ERROR_CODE_VALIDATION).send({ message: `Переданы некорректные данные для постановки/снятии лайка: ${error.message}` });
-        return;
-      }
-      if (error.message === 'Not found') {
-        response.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
-        return;
-      }
-      response.status(ERROR_CODE_COMMON).send({
-        message: `На сервере произошла ошибка ${error.name}: ${error.message}`,
-      });
-    });
+module.exports.dislikeCard = (request, response, next) => {
+  updateLike(request, response, next, { operator: '$pull' }); // убрать id из массива лайков
 };

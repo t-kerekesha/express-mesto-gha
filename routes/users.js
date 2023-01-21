@@ -4,15 +4,20 @@ const usersRoutes = express.Router();
 const {
   getUsers,
   getUserById,
-  createUser,
+  getCurrentUser,
   updateUser,
   updateAvatar,
 } = require('../controllers/users');
+const {
+  validateUserId,
+  validateNameAbout,
+  validateAvatar,
+} = require('../middlewares/validation');
 
-usersRoutes.get('/', getUsers); // возвращает всех пользователей
-usersRoutes.get('/:userId', getUserById); // возвращает пользователя по _id
-usersRoutes.post('/', express.json(), createUser); // создаёт пользователя
-usersRoutes.patch('/me', express.json(), updateUser); // обновляет профиль
-usersRoutes.patch('/me/avatar', express.json(), updateAvatar); // обновляет аватар
+usersRoutes.get('/', getUsers); // Возвращение всех пользователей
+usersRoutes.get('/me', getCurrentUser); // Возвращение информации о текущем пользователе
+usersRoutes.get('/:userId', validateUserId, getUserById); // Возвращение пользователя по _id
+usersRoutes.patch('/me', express.json(), validateNameAbout, updateUser); // обновляет профиль
+usersRoutes.patch('/me/avatar', express.json(), validateAvatar, updateAvatar); // обновляет аватар
 
 module.exports = usersRoutes;
