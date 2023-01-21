@@ -14,7 +14,10 @@ const { generateToken } = require('../utils/generateToken');
 
 // Cоздание пользователя
 module.exports.createUser = (request, response, next) => {
-  const { email, password } = request.body;
+  const {
+    email, password, name, about, avatar,
+  } = request.body;
+
   if (!password) {
     throw new BadRequestError('Пароль не должен быть пустым');
   }
@@ -23,6 +26,9 @@ module.exports.createUser = (request, response, next) => {
     .then((hash) => User.create({
       email,
       password: hash,
+      name,
+      about,
+      avatar,
     }))
     .then(() => User.findOne({ email }))
     .then((user) => response.status(STATUS_CODE_CREATED).send({ data: user }))
