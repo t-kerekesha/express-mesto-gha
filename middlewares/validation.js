@@ -12,7 +12,7 @@ const validateEmailPassword = celebrate({
       'string.empty': 'Пароль не может быть пустым',
       'any.required': 'Необходимо ввести пароль',
     }),
-  }),
+  }).unknown(true),
 });
 
 const validateNameAbout = celebrate({
