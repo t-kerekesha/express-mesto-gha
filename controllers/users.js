@@ -18,10 +18,6 @@ module.exports.createUser = (request, response, next) => {
     email, password, name, about, avatar,
   } = request.body;
 
-  if (!password) {
-    throw new BadRequestError('Пароль не должен быть пустым');
-  }
-
   bcrypt.hash(password, SOLT_ROUNDS)
     .then((hash) => User.create({
       email,
@@ -30,8 +26,14 @@ module.exports.createUser = (request, response, next) => {
       about,
       avatar,
     }))
-    .then(() => User.findOne({ email }))
-    .then((user) => response.status(STATUS_CODE_CREATED).send({ data: user }))
+    .then((user) => response.status(STATUS_CODE_CREATED).send({
+      data: {
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+      },
+    }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
         next(new BadRequestError(`Переданы некорректные данные при создании пользователя: ${error.message}`));
@@ -46,9 +48,6 @@ module.exports.createUser = (request, response, next) => {
 // Аутентификация пользователя
 module.exports.login = (request, response, next) => {
   const { email, password } = request.body;
-  if (!password || !email) {
-    throw new UnauthorizedError('Неправильные email или пароль');
-  }
 
   User.findOne({ email }).select('+password')
     .orFail(new UnauthorizedError('Неправильные email или пароль'))

@@ -15,6 +15,7 @@ const {
   validateCookies,
 } = require('./middlewares/validation');
 
+const BadRequestError = require('./errors/BadRequestError');
 const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
@@ -28,10 +29,15 @@ app.use(cors());
 
 // app.use(express.json());
 
-app.post('/signin', express.json(), validateEmailPassword, login);
-app.post('/signup', express.json(), validateUserData, createUser);
-app.use('/users', auth, validateCookies, usersRoutes);
-app.use('/cards', auth, validateCookies, cardsRoutes);
+try {
+  app.post('/signin', express.json(), validateEmailPassword, login);
+  app.post('/signup', express.json(), validateUserData, createUser);
+  app.use('/users', auth, validateCookies, usersRoutes);
+  app.use('/cards', auth, validateCookies, cardsRoutes);
+} catch (error) {
+  console.log(error)
+  throw new BadRequestError('Переданные данные содержат синтаксическую ошибку');
+}
 
 app.use('*', (request, response, next) => next(new NotFoundError('Неверный путь')));
 
