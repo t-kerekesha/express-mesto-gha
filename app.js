@@ -27,19 +27,22 @@ const {
 } = process.env;
 app.use(cors());
 
-// app.use(express.json());
+app.use(express.json({
+  verify: (request, response, buffer) => {
+    try {
+      JSON.parse(buffer);
+    } catch (error) {
+      throw new BadRequestError('Переданные данные содержат синтаксическую ошибку');
+    }
+  },
+}));
 
-try {
-  app.post('/signin', express.json(), validateEmailPassword, login);
-  app.post('/signup', express.json(), validateUserData, createUser);
-  app.use('/users', auth, validateCookies, usersRoutes);
-  app.use('/cards', auth, validateCookies, cardsRoutes);
-} catch (error) {
-  console.log(error)
-  throw new BadRequestError('Переданные данные содержат синтаксическую ошибку');
-}
+app.post('/signin', validateEmailPassword, login);
+app.post('/signup', validateUserData, createUser);
+app.use('/users', auth, validateCookies, usersRoutes);
+app.use('/cards', auth, validateCookies, cardsRoutes);
 
-app.use('*', (request, response, next) => next(new NotFoundError('Неверный путь')));
+app.use('*', auth, (request, response, next) => next(new NotFoundError('Неверный путь')));
 
 // Обработка ошибок
 app.use(errors());

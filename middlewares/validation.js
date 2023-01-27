@@ -1,5 +1,4 @@
 const { celebrate, Joi } = require('celebrate');
-const { ObjectId } = require('mongoose').Types;
 const { regExpUrl } = require('../utils/constants');
 
 const validateEmailPassword = celebrate({
@@ -88,23 +87,21 @@ const validateNameLink = celebrate({
 
 const validateUserId = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required().custom((value, helpers) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return helpers.message('Невалидный id пользователя');
-    }),
+    userId: Joi.string().required().length(24).hex()
+      .messages(({
+        'string.hex': 'Невалидный id пользователя',
+        'string.length': 'Невалидный id пользователя',
+      })),
   }),
 });
 
 const validateСardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().custom((value, helpers) => {
-      if (ObjectId.isValid(value)) {
-        return value;
-      }
-      return helpers.message('Невалидный id карточки');
-    }),
+    cardId: Joi.string().required().length(24).hex()
+      .messages(({
+        'string.hex': 'Невалидный id карточки',
+        'string.length': 'Невалидный id карточки',
+      })),
   }),
 });
 
