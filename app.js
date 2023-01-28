@@ -14,6 +14,7 @@ const {
   validateUserData,
   validateCookies,
 } = require('./middlewares/validation');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const BadRequestError = require('./errors/BadRequestError');
 const NotFoundError = require('./errors/NotFoundError');
@@ -37,6 +38,8 @@ app.use(express.json({
   },
 }));
 
+app.use(requestLogger); // логгер запросов
+
 app.post('/signin', validateEmailPassword, login);
 app.post('/signup', validateUserData, createUser);
 app.use('/users', auth, validateCookies, usersRoutes);
@@ -44,9 +47,11 @@ app.use('/cards', auth, validateCookies, cardsRoutes);
 
 app.use('*', auth, (request, response, next) => next(new NotFoundError('Неверный путь')));
 
+app.use(errorLogger); // логгер ошибок
+
 // Обработка ошибок
-app.use(errors());
-app.use(errorHandler);
+app.use(errors()); // обработчик ошибок celebrate
+app.use(errorHandler); // централизованный обработчик ошибок
 
 async function connect() {
   await mongoose.connect(MONGO_URL); // подключение к серверу mongo
